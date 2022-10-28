@@ -1,4 +1,5 @@
 const path = require("path");
+const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   // 파일을 읽어들이기 시작하는 진입점 설정
@@ -9,4 +10,10 @@ module.exports = {
     // 내보내기 할 위치
     path: path.resolve(__dirname, "dist"),
   },
+  plugins: [
+    new HtmlWebpackPlugin({
+      // 번들에 같이 사용할 html 경로
+      template: "./index.html",
+    }),
+  ],
 };
