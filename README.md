@@ -1,78 +1,76 @@
-# webpack 번들 시작해보기
+# Asset Management
 
-해당 내용응 웹팩 공식 문서의 Getting Started 문서를 보고 작성했습니다.
+asset을 통합하고 처리되는 방법을 공부
+웹팩은 내장 asset module을 지원하며, 다른 유형의 파일도 포함할 수 있다.
 
-## 폴더 구조
+## Loading CSS
 
+자바스크립트 모듈 내에서 css 파일을 import하려면 아래와 같은 Loader 패키지가 필요하며, 이를 module 설정이 필요하다.
+
+```bash
+npm i -d style-loader css-loader
 ```
-root
-  |- /src
-    |- index.js
-  |- index.html
-  |- webpack.config.js
-  |- package.json
-  |- package-lock.json
-```
-
-## 번들 시작하기
-
-웹팩을 사용하기 위해 먼저 `webpack.config.js`를 생성한다.
 
 ```javascript
 // webpack.config.js
-// node 환경에서의 path 모듈을 사용한다.
 const path = require("path");
-
-module.exports = {
-  // 파일을 읽어들이기 시작하는 진입점 설정
-  entry: "./src/index.js",
-  output: {
-    // 번들링 완료 후 내보낼 파일 명
-    filename: "main.js",
-    // 내보내기 할 위치
-    path: path.resolve(__dirname, "dist"),
-  },
-};
-```
-
-여기서 번들할때 js파일이 아닌 html파일도 같이 진행해야 하기 떄문에 plugins에 추가할 패키지가 있는데 바로 [`html-webpack-plugin`](https://github.com/jantimon/html-webpack-plugin)을 설치한다.
-
-```bash
-npm i --save-dev html-webpack-plugin
-```
-
-해당 패키지를 설치 한후 webpack.config.js에 plugins에 추가한다.
-
-```javascript
-const path = require("path");
-// 모듈을 불러온다.
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 module.exports = {
   // 파일을 읽어들이기 시작하는 진입점 설정
-  entry: "./src/index.js",
+  entry: "./src/index.js",f
   output: {
     // 번들링 완료 후 내보낼 파일 명
     filename: "main.js",
     // 내보내기 할 위치
     path: path.resolve(__dirname, "dist"),
   },
+  // 모듈 내 rules 추가
+  module: {
+    rules: [
+      {
+        // 정규식 표현으로 .css로 끝나는 파일을 찾는다.
+        test: /\.css$/i,
+        // 위에서 찾은 파일은 아래의 Loader를 사용하여 번들한다.
+        use: ["style-loader", "css-loader"],
+      },
+    ],
+  },
   plugins: [
     new HtmlWebpackPlugin({
-      // 번들에 같이 사용할 html 파일명
+      // 번들에 같이 사용할 html 경로
       template: "./index.html",
     }),
   ],
 };
 ```
 
-## js 파일 작성
+정규식 표현을 사용하여 .css로 끝나는 파일만 찾고, 모듈을 사용하여 해당 파일은 변형한다.
+모듈의 로더는 체인으로 연결할 수 있다. 이 때 체인의 각 로더는 리소스에 변형을 적용하며 역순으로 실행된다.
+위 내용을 보자면 css-loader로 css 파일을 읽은 후 style-loader로 style을 읽는다.
+
+src 폴더내 style.css를 생성한 후 css를 작성한다.
+
+```css
+.hello {
+  color: red;
+}
+```
+
+다음 해당 css로 번들 대상이므로 `index.js`에 css를 `import` 한다.
 
 ```javascript
+// index.js
+// style.css를 import 한다.
+import "./style.css";
+
 function component() {
   const element = document.createElement("div");
 
+  // 이 라인이 동작하려면 현재 스크립트를 통해 포함된 Lodash가 필요합니다.
   element.innerText = "hello world";
+  // element에 class를 추가한다.
+  element.classList.add("hello");
 
   return element;
 }
@@ -80,22 +78,4 @@ function component() {
 document.body.appendChild(component());
 ```
 
-## 번들 시작
-
-위와 같은 준비를 완료한 후 터미널에 아래와 같이 입력하여 실행한다.
-
-```bash
-npx webpack --config webpack.config.js
-```
-
-위와 같이 입력하면 번들이 시작되고 완료되면 `root 폴더`에 `dist 폴더`가 생성되며 번들된 파일들이 생성된다.
-
-이 때 다른 방법으로는 package.json에서의 script 부분을 추가해주는 방법이 있다.
-
-```JSON
-  "scripts": {
-    "build": "webpack"
-  },
-```
-
-위와 같이 추가한 후 터미널에서 `npm run build`를 하면 실행된다.
+위와 같이 작성한 후 `npm run build`를 실행하여 번들한다.

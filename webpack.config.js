@@ -10,6 +10,14 @@ module.exports = {
     // 내보내기 할 위치
     path: path.resolve(__dirname, "dist"),
   },
+  module: {
+    rules: [
+      {
+        test: /\.css$/i,
+        use: ["style-loader", "css-loader"],
+      },
+    ],
+  },
   plugins: [
     new HtmlWebpackPlugin({
       // 번들에 같이 사용할 html 경로
